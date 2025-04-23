@@ -1,6 +1,6 @@
 import bpy
 from ..utils import atomcolors
-from ase.data import covalent_radii, chemical_symbols, colors
+from ase.data import covalent_radii, chemical_symbols, colors, vdw_alvarez
 
 
 
@@ -19,9 +19,12 @@ def read_structure(atoms,name, animate=True):
         mesh.attributes.new(name="element", type='FLOAT', domain='POINT')
     if "atom_radius" not in mesh.attributes:
         mesh.attributes.new(name="atom_radius", type='FLOAT', domain='POINT')
+    if 'vdw_radius' not in mesh.attributes:
+        mesh.attributes.new(name="vdw_radius", type='FLOAT', domain='POINT')
 
     element = mesh.attributes["element"].data
     rad = mesh.attributes["atom_radius"].data
+    rad_vdw=mesh.attributes["vdw_radius"].data
 
     for i, value in enumerate(element):
         atom=atoms[i]
@@ -29,8 +32,11 @@ def read_structure(atoms,name, animate=True):
         # Update the mesh   
     for i, value in enumerate(rad):
         atom=atoms[i]
-        rad=covalent_radii[atom.number]
-        value.value = rad 
+        value.value = covalent_radii[atom.number]
+    for i, value in enumerate(rad_vdw):
+        atom=atoms[i]
+        value.value = vdw_alvarez.vdw_radii[atom.number]
+
     mesh.update()
     vertx=obj.data.vertices
     #doesnt work yet
