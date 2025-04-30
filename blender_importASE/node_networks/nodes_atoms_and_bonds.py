@@ -1,4 +1,5 @@
 import bpy
+import np
 from ..utils import atomcolors
 from ase.data import covalent_radii, chemical_symbols, colors, vdw_alvarez
 
@@ -35,7 +36,8 @@ def read_structure(atoms,name, animate=True):
         value.value = covalent_radii[atom.number]
     for i, value in enumerate(rad_vdw):
         atom=atoms[i]
-        value.value = vdw_alvarez.vdw_radii[atom.number]
+        value.value = np.where(np.isnan(vdw_alvarez.vdw_radii[atom.number]),
+                               covalent_radii[atom.number], vdw_alvarez.vdw_radii[atom.number])
 
     mesh.update()
     vertx=obj.data.vertices
