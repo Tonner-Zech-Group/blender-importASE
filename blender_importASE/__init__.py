@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+import os.path
+import importlib
 import bpy
 import sys
 import subprocess
@@ -152,7 +153,7 @@ class ImportASEMolecule(bpy.types.Operator, ImportHelper):
             # this section causes the representation to be ignored when overwrite is checked
             # we should come up with something else for now set default to false
 
-
+            from .ui import import_ase_molecule
             import_ase_molecule(filepath, file.name,
                             
                                 resolution=self.resolution,
@@ -169,22 +170,45 @@ class ImportASEMolecule(bpy.types.Operator, ImportHelper):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-def make_install():
-    python_path = sys.executable
-    install_path = bpy.utils.script_path_user()
-    subprocess.check_call([python_path, "-m", "pip", "install","--target", install_path, "ase"])
-    print("Installed ASE, ready to register")
 
+def check_dependency():
+    try:
+        import ase
+        return True
+    except ImportError:
+        print("ASE not present in Blender python. Attempting install. This could take a moment...")
+        try:
+            python_path = sys.executable
+            script_path = bpy.utils.script_path_user()
+            install_path = os.path.join(script_path, "modules")
+            subprocess.check_call([python_path, "-m", "pip", "install", "--target", install_path, "ase"])
+            if install_path not in sys.path:
+                sys.path.append(install_path)
+            importlib.invalidate_caches()
+            import ase
+        except subprocess.CalledProcessError as e:
+            print("Failed to install ASE. Please check your internet connection and try again or install manually")
+            return False
+        except ImportError:
+            print("ASE not found after installation, check your blender installation")
+            return False
+        print("Installed ASE")
+        return True
 
 def menu_func_import(self, context):
     self.layout.operator(ImportASEMolecule.bl_idname, text="ASE Molecule (.*)")
 
 
 def register():
-    make_install()
-    bpy.utils.register_class(ImportASEMolecule)
-    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
-
+    dependency = check_dependency()
+    print("dependency", dependency)
+    if dependency:
+        bpy.utils.register_class(ImportASEMolecule)
+        bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
+    else:
+        # bpy.utils.register_class(ErrorPopup)
+        # bpy.ops.wm.simple_popup('INVOKE_DEFAULT')
+        print("failed")
 
 def unregister():
     bpy.utils.unregister_class(ImportASEMolecule)
@@ -193,4 +217,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-    from .ui import import_ase_molecule
