@@ -1,5 +1,5 @@
 import bpy
-import np
+import numpy as np
 from ..utils import atomcolors
 from ase.data import covalent_radii, chemical_symbols, colors, vdw_alvarez
 
