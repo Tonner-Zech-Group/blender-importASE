@@ -170,6 +170,18 @@ class ImportASEMolecule(bpy.types.Operator, ImportHelper):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+class ASEAddonPreferences(bpy.types.AddonPreferences):
+    bl_idname = __name__
+
+    install_failed: bpy.props.BoolProperty(default=False)
+
+    def draw(self, context):
+        layout = self.layout
+        if self.install_failed:
+            layout.label(text="ASE installation failed. Please check your internet connection.", icon='ERROR')
+        else:
+            layout.label(text="ASE installation successful.", icon='CHECKMARK')
+
 
 def check_dependency():
     try:
@@ -198,21 +210,25 @@ def check_dependency():
 def menu_func_import(self, context):
     self.layout.operator(ImportASEMolecule.bl_idname, text="ASE Molecule (.*)")
 
-
 def register():
+    bpy.utils.register_class(ASEAddonPreferences)
     dependency = check_dependency()
     print("dependency", dependency)
     if dependency:
         bpy.utils.register_class(ImportASEMolecule)
         bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
     else:
-        # bpy.utils.register_class(ErrorPopup)
-        # bpy.ops.wm.simple_popup('INVOKE_DEFAULT')
+        prefs = bpy.context.preferences.addons[__name__].preferences
+        prefs.install_failed = True
         print("failed")
 
 def unregister():
-    bpy.utils.unregister_class(ImportASEMolecule)
+    try:
+        bpy.utils.unregister_class(ImportASEMolecule)
+    except RuntimeError:
+        print("ImportASEMolecule was not registered, skipping.")
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+    bpy.utils.unregister_class(ASEAddonPreferences)
 
 
 if __name__ == "__main__":
