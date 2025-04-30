@@ -213,14 +213,12 @@ def menu_func_import(self, context):
 def register():
     bpy.utils.register_class(ASEAddonPreferences)
     dependency = check_dependency()
-    print("dependency", dependency)
     if dependency:
         bpy.utils.register_class(ImportASEMolecule)
         bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
     else:
         prefs = bpy.context.preferences.addons[__name__].preferences
         prefs.install_failed = True
-        print("failed")
 
 def unregister():
     try:
