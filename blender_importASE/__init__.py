@@ -199,7 +199,7 @@ def check_dependency():
             if util.find_spec("ase") is None:
                 print("ASE not found after installation, check your blender installation")
                 return False
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             print("Failed to install ASE. Please check your internet connection and try again or install manually")
             return False
         print("Installed ASE")
