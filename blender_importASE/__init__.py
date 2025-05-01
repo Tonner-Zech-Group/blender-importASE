@@ -6,7 +6,7 @@ import sys
 import subprocess
 from bpy_extras.io_utils import ImportHelper
 from os.path import join
-
+from importlib import util
 
 
 __author__ = "Hendrik Weiske"
@@ -184,10 +184,9 @@ class ASEAddonPreferences(bpy.types.AddonPreferences):
 
 
 def check_dependency():
-    try:
-        import ase
+    if util.find_spec("ase") is not None:
         return True
-    except ImportError:
+    else:
         print("ASE not present in Blender python. Attempting install. This could take a moment...")
         try:
             python_path = sys.executable
@@ -197,12 +196,11 @@ def check_dependency():
             if install_path not in sys.path:
                 sys.path.append(install_path)
             importlib.invalidate_caches()
-            import ase
+            if util.find_spec("ase") is None:
+                print("ASE not found after installation, check your blender installation")
+                return False
         except subprocess.CalledProcessError as e:
             print("Failed to install ASE. Please check your internet connection and try again or install manually")
-            return False
-        except ImportError:
-            print("ASE not found after installation, check your blender installation")
             return False
         print("Installed ASE")
         return True
