@@ -1,6 +1,6 @@
 import bpy
 import ase
-from ase.data import covalent_radii
+from ase.data import covalent_radii, vdw_alvarez
 import numpy as np
 import ase.neighborlist
 
@@ -22,14 +22,15 @@ def draw_atoms(atoms, scale=1,resolution=16, representation="Balls'n'Sticks"):
         ob.location = atom.position
         bpy.context.view_layer.active_layer_collection.collection.objects.link(ob)
         bpy.context.view_layer.active_layer_collection.collection.objects[-1].name = atom.symbol
+        size = bpy.context.view_layer.active_layer_collection.collection.objects[-1].scale
         if representation == "Balls'n'Sticks":
-            bpy.context.view_layer.active_layer_collection.collection.objects[-1].scale = [covalent_radii[
-                                                                                               atom.number]  * scale, ] * 3
+            size = [covalent_radii[atom.number]  * scale, ] * 3
         elif representation == 'Licorice':
-            bpy.context.view_layer.active_layer_collection.collection.objects[-1].scale = [0.1] * 3
-        else:
-            bpy.context.view_layer.active_layer_collection.collection.objects[-1].scale = [covalent_radii[
-                                                                                               atom.number] * scale, ] * 3
+            size = [0.1] * 3
+        elif representation == 'VDW':
+            size = np.where(np.isnan(vdw_alvarez.vdw_radii[atom.number]),
+                             [covalent_radii[atom.number] * scale, ] * 3, [vdw_alvarez.vdw_radii[atom.number]] * 3)
+        bpy.context.view_layer.active_layer_collection.collection.objects[-1].scale = size
         # sprint(bpy.data.node_groups)
         bpy.context.view_layer.active_layer_collection.collection.objects[-1].data.materials.append(
             bpy.data.materials[atom.symbol])
