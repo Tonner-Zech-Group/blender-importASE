@@ -1,9 +1,12 @@
 #!/usr/bin/env python
-
+import os.path
+import importlib
 import bpy
+import sys
+import subprocess
 from bpy_extras.io_utils import ImportHelper
 from os.path import join
-from .ui import import_ase_molecule
+from importlib import util
 
 
 __author__ = "Hendrik Weiske"
@@ -150,7 +153,7 @@ class ImportASEMolecule(bpy.types.Operator, ImportHelper):
             # this section causes the representation to be ignored when overwrite is checked
             # we should come up with something else for now set default to false
 
-            
+            from .ui import import_ase_molecule
             import_ase_molecule(filepath, file.name,
                             
                                 resolution=self.resolution,
@@ -167,19 +170,61 @@ class ImportASEMolecule(bpy.types.Operator, ImportHelper):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+class ASEAddonPreferences(bpy.types.AddonPreferences):
+    bl_idname = __name__
+
+    install_failed: bpy.props.BoolProperty(default=False)
+
+    def draw(self, context):
+        layout = self.layout
+        if self.install_failed:
+            layout.label(text="ASE installation failed. Please check your internet connection.", icon='ERROR')
+        else:
+            layout.label(text="ASE installation successful.", icon='CHECKMARK')
+
+
+def check_dependency():
+    if util.find_spec("ase") is not None:
+        return True
+    else:
+        print("ASE not present in Blender python. Attempting install. This could take a moment...")
+        try:
+            python_path = sys.executable
+            script_path = bpy.utils.script_path_user()
+            install_path = os.path.join(script_path, "modules")
+            subprocess.check_call([python_path, "-m", "pip", "install", "--target", install_path, "ase"])
+            if install_path not in sys.path:
+                sys.path.append(install_path)
+            importlib.invalidate_caches()
+            if util.find_spec("ase") is None:
+                print("ASE not found after installation, check your blender installation")
+                return False
+        except subprocess.CalledProcessError:
+            print("Failed to install ASE. Please check your internet connection and try again or install manually")
+            return False
+        print("Installed ASE")
+        return True
 
 def menu_func_import(self, context):
     self.layout.operator(ImportASEMolecule.bl_idname, text="ASE Molecule (.*)")
 
-
 def register():
-    bpy.utils.register_class(ImportASEMolecule)
-    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
-
+    bpy.utils.register_class(ASEAddonPreferences)
+    dependency = check_dependency()
+    if dependency:
+        bpy.utils.register_class(ImportASEMolecule)
+        bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
+    else:
+        prefs = bpy.context.preferences.addons[__name__].preferences
+        prefs.install_failed = True
 
 def unregister():
-    bpy.utils.unregister_class(ImportASEMolecule)
+    try:
+        bpy.utils.unregister_class(ImportASEMolecule)
+    except RuntimeError:
+        print("ImportASEMolecule was not registered, skipping.")
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+    bpy.utils.unregister_class(ASEAddonPreferences)
 
 
 if __name__ == "__main__":

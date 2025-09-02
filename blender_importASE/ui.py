@@ -133,7 +133,10 @@ def import_ase_molecule(filepath, filename, overwrite=True, add_supercell=True, 
                 if fix_bonds is True:
                     move_longbonds(TRAJECTORY,list_of_bonds,nl,bondlengths,imageslice)
                 else:
-                    move_bonds(TRAJECTORY,list_of_bonds,nl,imageslice)  
+                    move_bonds(TRAJECTORY,list_of_bonds,nl,imageslice)
+        if representation == 'bonds_fromnodes':
+            print("generating trajectory for bonds_fromnodes")
+            move_atoms(TRAJECTORY,list_of_atoms,imageslice)
     end=time.time()
     print('Time to import atoms_object: ',end-end_read)
 
