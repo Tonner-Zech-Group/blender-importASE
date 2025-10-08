@@ -1,0 +1,42 @@
+# This workflow will install Python dependencies and blender, run tests with a single version of Python
+
+name: Basic tests
+
+on:
+  push:
+    branches: [ "main", "autotest" ]
+  pull_request:
+    branches: [ "main", "autotest" ]
+
+permissions:
+  contents: read
+
+jobs:
+  test-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    - name: Install Blender
+      run: |
+        BLENDER_VERSION="4.4.3"
+        wget https://download.blender.org/release/Blender${BLENDER_VERSION%.*}/blender-$BLENDER_VERSION-linux-x64.tar.xz
+        tar -xf blender-$BLENDER_VERSION-linux-x64.tar.xz
+        echo "$PWD/blender-$BLENDER_VERSION-linux-x64" >> $GITHUB_PATH
+        $PWD/blender-$BLENDER_VERSION-linux-x64/blender -r
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Lint with Ruff
+      run: |
+        pip install ruff
+        ruff check --output-format=github .
+      continue-on-error: false
+    - name: Test with unittest
+      run: |
+        pip install unittest
+        python -m unittest test/test_blender-importASE.py
