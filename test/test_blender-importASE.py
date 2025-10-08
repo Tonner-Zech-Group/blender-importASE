@@ -41,6 +41,12 @@ class TestBlender(unittest.TestCase):
                 self.assertEqual(ret.returncode, 0)
                 self.assertTrue(os.path.exists(output))
 
+        def _modify_runfile(self, filename, placeholder, new):
+                with open(filename, "r") as f:
+                        content = f.read()
+                content = content.replace(placeholder, new)
+                with open(filename, "w") as f:
+                        f.write(content)
 
         def test_blender(self):
                 testfile = os.path.join(os.path.dirname(__file__), "test_blender.py")
@@ -56,3 +62,19 @@ class TestBlender(unittest.TestCase):
                 self.assertTrue(version[0] >= 4, "Unsupported Blender version") # major version
                 self.assertTrue(version[1] >= 4, "Unsupported Blender version") # minor version
 
+        def test_install_addon(self):
+                testfile = os.path.join(os.path.dirname(__file__), "test_install_addon.py")
+                # pack the addon into a zip file
+                import shutil
+                shutil.make_archive("ase_addon", 'zip', os.path.join(os.path.dirname(__file__), "..", "blender_importASE"))
+                zip_path = os.path.abspath("ase_addon.zip")
+                self._modify_runfile(testfile, "###ADDON_PATH###", zip_path)
+                print("Addon zip path:", zip_path)
+                self._run_test(input=testfile, output="install_addon_out.log", error="install_addon_err.log")
+                with open("blender_out.json", "r") as f:
+                        data = json.load(f)
+                self.assertIn("modules", data)
+                self.assertIn("addon_enabled", data)
+                self.assertTrue(data["addon_enabled"], "Addon was not enabled")
+                self.assertIsInstance(data["modules"], list)
+                self.assertIn("ase", data["modules"])
