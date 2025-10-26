@@ -19,4 +19,4 @@ results_dict["modules"] = list(packages_distributions().keys())
 with open("blender_out.json", "w") as f:
     import json
     json.dump(results_dict, f)
-    
+print("Results written to blender_out.json")
