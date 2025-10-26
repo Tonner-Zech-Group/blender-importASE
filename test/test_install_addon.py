@@ -1,5 +1,4 @@
 import bpy
-import os
 from importlib.metadata import packages_distributions
 
 addon_path = "###ADDON_PATH###"  # Placeholder to be replaced in the test
