@@ -38,5 +38,4 @@ jobs:
         $PWD/blender-$BLENDER_VERSION-linux-x64/blender -r
     - name: Test with unittest
       run: |
-        ls -la
-        python -m unittest test/test_blender-importASE.py
+        python -m unittest test/test_blender_importASE.py

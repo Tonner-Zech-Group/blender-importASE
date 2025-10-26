@@ -1,6 +1,7 @@
 import unittest
 import os
 import json
+import shutil
 
 # Test functions that are independent of blender/bpy
 
@@ -18,7 +19,7 @@ class TestBlender(unittest.TestCase):
 
         def tearDown(self) -> None:
                 # clean up files created during test
-                for f in ["blender_out.log", "blender_err.log", "blender_img.png", "blender_out.json"]:
+                for f in ["blender_out.log", "blender_err.log", "blender_img.png", "blender_out.json", "current_test.py", "ase_addon.zip"]:
                         if os.path.exists(f):
                                 os.remove(f)
                 return super().tearDown()
@@ -41,15 +42,23 @@ class TestBlender(unittest.TestCase):
                 self.assertEqual(ret.returncode, 0)
                 self.assertTrue(os.path.exists(output))
 
-        def _modify_runfile(self, filename, placeholder, new):
-                with open(filename, "r") as f:
+        def _prepare_runfile(self, filename):
+                path = os.path.join(os.path.dirname(__file__), "test_templates", filename)
+                if os.path.exists(os.path.join(os.path.dirname(__file__), "current_test.py")):
+                        os.remove(os.path.join(os.path.dirname(__file__), "current_test.py"))
+                shutil.copyfile(path, os.path.join(os.path.dirname(__file__), "current_test.py"))
+                return os.path.join(os.path.dirname(__file__), "current_test.py")
+
+        def _modify_runfile(self, placeholder, new, filename="current_test.py"):
+                path = os.path.join(os.path.dirname(__file__), filename)
+                with open(path, "r") as f:
                         content = f.read()
                 content = content.replace(placeholder, new)
-                with open(filename, "w") as f:
+                with open(path, "w") as f:
                         f.write(content)
 
         def test_blender(self):
-                testfile = os.path.join(os.path.dirname(__file__), "test_blender.py")
+                testfile = self._prepare_runfile("test_blender.py")
                 self._run_test(input=testfile)
                 with open("blender_out.json", "r") as f:
                         data = json.load(f)
@@ -63,12 +72,13 @@ class TestBlender(unittest.TestCase):
                 self.assertTrue(version[1] >= 4, "Unsupported Blender version") # minor version
 
         def test_install_addon(self):
-                testfile = os.path.join(os.path.dirname(__file__), "test_install_addon.py")
+                testfile = self._prepare_runfile("test_install_addon.py")
                 # pack the addon into a zip file
-                import shutil
-                shutil.make_archive("ase_addon", 'zip', os.path.join(os.path.dirname(__file__), "..", "blender_importASE"))
+                root_dir = os.path.join(os.path.dirname(__file__), "..")
+                base_dir = "blender_importASE"
+                shutil.make_archive("ase_addon", "zip", root_dir=root_dir, base_dir=base_dir)
                 zip_path = os.path.abspath("ase_addon.zip")
-                self._modify_runfile(testfile, "###ADDON_PATH###", zip_path)
+                self._modify_runfile("###ADDON_PATH###", zip_path)
                 print("Addon zip path:", zip_path)
                 self._run_test(input=testfile, output="install_addon_out.log", error="install_addon_err.log")
                 with open("blender_out.json", "r") as f:
