@@ -38,4 +38,5 @@ jobs:
         $PWD/blender-$BLENDER_VERSION-linux-x64/blender -r
     - name: Test with unittest
       run: |
-        python -m unittest test/test_blender_importASE.py
+        cd $GITHUB_WORKSPACE
+        python -m unittest discover -s test -p "test_*.py"
