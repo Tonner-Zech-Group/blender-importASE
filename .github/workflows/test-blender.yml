@@ -33,7 +33,14 @@ jobs:
           python3 -m pip install -r requirements-dev.txt
 
       - name: Run full test suite
-        run: python3 -m pytest test/ -v --tb=short
+        run: python3 -m pytest test/ -v --cov --cov-report=xml --cov-report=term
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-blender-${{ matrix.blender-version }}
+          path: coverage.xml
+          if-no-files-found: ignore
 
       - name: Upload test logs on failure
         if: failure()

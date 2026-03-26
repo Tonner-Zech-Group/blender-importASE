@@ -10,3 +10,13 @@ ignore = ["E501"]  # long lines common in Blender property descriptions
 [tool.pytest.ini_options]
 testpaths = ["test"]
 norecursedirs = ["test_templates", "reference_data", ".venv", ".git"]
+addopts = "--tb=short"
+
+[tool.coverage.run]
+source = ["blender_importASE"]
+omit = ["blender_importASE/node_networks/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 0

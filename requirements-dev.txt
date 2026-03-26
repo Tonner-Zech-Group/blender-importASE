@@ -1,0 +1,6 @@
+ase
+ruff
+pytest
+pytest-cov
+fake-bpy-module-4-4
+numpy
