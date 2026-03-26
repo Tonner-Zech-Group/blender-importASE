@@ -4,12 +4,40 @@ import json
 import shutil
 import sys
 
+import numpy as np
+
 # Test functions that are independent of blender/bpy
 
 class TestFunctions(unittest.TestCase):
 
+        def _is_inside_cell(self, pos, cell):
+                """Pure-Python copy of drawobjects.is_inside_cell for unit testing."""
+                inv_cell = np.linalg.inv(cell)
+                fractional_coords = np.dot(pos, inv_cell)
+                return all(0 <= coord <= 1 for coord in fractional_coords)
+
         def test_is_inside_cell(self):
-                pass
+                cell = np.eye(3) * 5.0  # 5 Å cubic cell
+
+                # atom at origin — on the boundary, counts as inside
+                self.assertTrue(self._is_inside_cell([0.0, 0.0, 0.0], cell))
+
+                # atom at cell centre
+                self.assertTrue(self._is_inside_cell([2.5, 2.5, 2.5], cell))
+
+                # atom at far corner — on the boundary, counts as inside
+                self.assertTrue(self._is_inside_cell([5.0, 5.0, 5.0], cell))
+
+                # atom clearly outside
+                self.assertFalse(self._is_inside_cell([6.0, 2.5, 2.5], cell))
+                self.assertFalse(self._is_inside_cell([-0.1, 2.5, 2.5], cell))
+
+                # non-orthogonal cell
+                cell_noncubic = np.array([[5.0, 0.5, 0.0],
+                                          [0.0, 5.0, 0.0],
+                                          [0.0, 0.0, 5.0]])
+                self.assertTrue(self._is_inside_cell([2.5, 2.5, 2.5], cell_noncubic))
+                self.assertFalse(self._is_inside_cell([6.0, 6.0, 6.0], cell_noncubic))
 
 # Fully integrated test with blender
 
