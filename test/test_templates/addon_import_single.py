@@ -7,21 +7,21 @@ from blender_importASE.ui import import_ase_molecule
 print("Importing modules completed.")
 
 filepath = "###STRUCTURE###"  # Placeholder to be replaced in the test
-colorbonds = ("###COLORBONDS###" == True)  # Placeholder to be replaced in the test
+colorbonds = ("###COLORBONDS###" == "True")  # Placeholder to be replaced in the test
 color = float("###COLOR###")  # Placeholder to be replaced in the test
-long_bonds = ("###LONG_BONDS###" == True)  # Placeholder to be replaced in the test
+long_bonds = ("###LONG_BONDS###" == "True")  # Placeholder to be replaced in the test
 scale = float("###SCALE###")  # Placeholder to be replaced in the test
-unit_cell = ("###UNIT_CELL###" == True)  # Placeholder to be replaced in the test
+unit_cell = ("###UNIT_CELL###" == "True")  # Placeholder to be replaced in the test
 representation = "###REPRESENTATION###"  # Placeholder to be replaced in the test
-read_density = ("###READ_DENSITY###" == True)  # Placeholder to be replaced in the test
-zero_cell = ("###ZERO_CELL###" == True)  # Placeholder to be replaced in the test
-outline = ("###OUTLINE###" == True)  # Placeholder to be replaced in the test
-imageslice = ("###IMAGE_SLICE###" == True)  # Placeholder to be replaced in the test
-animate = ("###ANIMATE###" == True)  # Placeholder to be replaced in the test
-overwrite = ("###OVERWRITE###" == True)  # Placeholder to be replaced in the test
+read_density = ("###READ_DENSITY###" == "True")  # Placeholder to be replaced in the test
+zero_cell = ("###ZERO_CELL###" == "True")  # Placeholder to be replaced in the test
+outline = ("###OUTLINE###" == "True")  # Placeholder to be replaced in the test
+imageslice = int("###IMAGE_SLICE###")  # Placeholder to be replaced in the test
+animate = ("###ANIMATE###" == "True")  # Placeholder to be replaced in the test
+overwrite = ("###OVERWRITE###" == "True")  # Placeholder to be replaced in the test
 resolution = int("###RESOLUTION###")  # Placeholder to be replaced in the test
 name = os.path.basename(filepath)
-render = ("###RENDER###" == True)  # Placeholder to be replaced in the test
+render = ("###RENDER###" == "True")  # Placeholder to be replaced in the test
 
 
 import_ase_molecule(filepath, name,
