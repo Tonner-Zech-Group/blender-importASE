@@ -1,7 +1,9 @@
 
+import json
+import os
+
 import bpy
 from blender_importASE.ui import import_ase_molecule
-import os
 print("Importing modules completed.")
 
 filepath = "###STRUCTURE###"  # Placeholder to be replaced in the test
@@ -45,4 +47,9 @@ for ob in out_dict["objects"]:
     out_dict["modifier_list"].append(md_list)
 
 if render:
-    
+    bpy.context.scene.render.filepath = "test/blender_img.png"
+    bpy.ops.render.render(write_still=True)
+
+with open("test/blender_out.json", "w") as f:
+    json.dump(out_dict, f)
+print("Results written to test/blender_out.json")
