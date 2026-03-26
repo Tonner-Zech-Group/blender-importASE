@@ -307,7 +307,13 @@ class TestAddon(unittest.TestCase):
 
         def test_import_crystal_double(self):
                 print("Testing Crystal import (double)... ", end="")
-                pass
+                data = self._run_double_import("NHC_cu.poscar", unit_cell="True")
+                first_count = len(data["objects_after_first"])
+                second_count = len(data["objects_after_second"])
+                self.assertGreater(first_count, 0, "No objects after first import")
+                self.assertGreater(second_count, first_count,
+                                   "Second import did not add new objects (overwrite=False)")
+                self.assertGreaterEqual(len(data["collections"]), 2)
                 print("OK")
 
         def test_import_density(self):
