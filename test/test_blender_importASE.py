@@ -271,7 +271,22 @@ class TestAddon(unittest.TestCase):
 
         def test_import_mol_double(self):
                 print("Testing Molecule import (double)... ", end="")
-                pass
+                data = self._run_double_import("NHC.xyz")
+                # After two imports the scene should have more objects than after one
+                self.assertIn("objects_after_first", data)
+                self.assertIn("objects_after_second", data)
+                first_count = len(data["objects_after_first"])
+                second_count = len(data["objects_after_second"])
+                self.assertGreater(first_count, 0, "No objects after first import")
+                self.assertGreater(second_count, first_count,
+                                   "Second import did not add new objects (overwrite=False)")
+                # Both imports share the same materials — count should not double
+                self.assertIn("C", data["materials"])
+                self.assertIn("H", data["materials"])
+                self.assertIn("N", data["materials"])
+                # Two separate collections should exist
+                collection_names = data["collections"]
+                self.assertGreaterEqual(len(collection_names), 2)
                 print("OK")
 
         def test_import_crystal(self):
