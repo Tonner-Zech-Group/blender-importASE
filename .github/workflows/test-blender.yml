@@ -1,0 +1,44 @@
+name: Blender tests
+
+on:
+  push:
+    branches: ["main", "autotest"]
+  pull_request:
+    branches: ["main", "autotest"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: [self-hosted, linux]
+    strategy:
+      fail-fast: false
+      matrix:
+        blender-version: ["4.4.3", "4.5.8-lts"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pin Blender version
+        run: echo "${{ matrix.blender-version }}" > .blender-version
+
+      - name: Verify Blender
+        run: blender --version
+
+      - name: Install test dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r requirements-dev.txt
+
+      - name: Run full test suite
+        run: python3 -m pytest test/ -v --tb=short
+
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blender-logs-${{ matrix.blender-version }}
+          path: test/*.log
+          if-no-files-found: ignore
