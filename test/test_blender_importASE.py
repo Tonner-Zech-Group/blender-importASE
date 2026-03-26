@@ -291,7 +291,18 @@ class TestAddon(unittest.TestCase):
 
         def test_import_crystal(self):
                 print("Testing Crystal import... ", end="")
-                pass
+                # NHC_cu.poscar: C9H16Cu81N2, 108 atoms, periodic boundary conditions
+                data = self._run_single_import("NHC_cu.poscar", unit_cell="True")
+                self.assertGreater(len(data["objects"]), 0, "No mesh objects created")
+                self.assertGreaterEqual(len(data["objects"]), 108)
+                material_names = data["materials"]
+                self.assertIn("C", material_names)
+                self.assertIn("H", material_names)
+                self.assertIn("N", material_names)
+                self.assertIn("Cu", material_names)
+                # Unit cell frame objects are CURVE type, not MESH — verify at least
+                # the atom/bond count is substantial for a 108-atom crystal
+                self.assertGreater(len(data["objects"]), 50)
                 print("OK")
 
         def test_import_crystal_double(self):
