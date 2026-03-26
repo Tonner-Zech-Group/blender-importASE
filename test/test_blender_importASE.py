@@ -206,9 +206,67 @@ class TestAddon(unittest.TestCase):
                 with open(path, "w") as f:
                         f.write(content)
 
+        def _run_single_import(self, structure_file, unit_cell="False", representation="Balls'n'Sticks",
+                               colorbonds="False", long_bonds="False", outline="False",
+                               animate="False", read_density="False", resolution="8"):
+                """Prepare and run addon_import_single.py, returning the parsed JSON output."""
+                testfile = self._prepare_runfile("addon_import_single.py")
+                structure_path = os.path.join(self.testpath, "reference_data", structure_file)
+                self._modify_runfile("###STRUCTURE###", structure_path)
+                self._modify_runfile("###COLORBONDS###", colorbonds)
+                self._modify_runfile("###COLOR###", "0.2")
+                self._modify_runfile("###LONG_BONDS###", long_bonds)
+                self._modify_runfile("###SCALE###", "1.0")
+                self._modify_runfile("###UNIT_CELL###", unit_cell)
+                self._modify_runfile("###REPRESENTATION###", representation)
+                self._modify_runfile("###READ_DENSITY###", read_density)
+                self._modify_runfile("###ZERO_CELL###", "False")
+                self._modify_runfile("###OUTLINE###", outline)
+                self._modify_runfile("###IMAGE_SLICE###", "1")
+                self._modify_runfile("###ANIMATE###", animate)
+                self._modify_runfile("###OVERWRITE###", "True")
+                self._modify_runfile("###RESOLUTION###", resolution)
+                self._modify_runfile("###RENDER###", "False")
+                self._run_test(input=testfile)
+                with open(os.path.join(self.testpath, "blender_out.json"), "r") as f:
+                        return json.load(f)
+
+        def _run_double_import(self, structure_file, unit_cell="False", representation="Balls'n'Sticks",
+                               colorbonds="False", long_bonds="False", outline="False",
+                               animate="False", read_density="False", resolution="8"):
+                """Prepare and run addon_import_double.py, returning the parsed JSON output."""
+                testfile = self._prepare_runfile("addon_import_double.py")
+                structure_path = os.path.join(self.testpath, "reference_data", structure_file)
+                self._modify_runfile("###STRUCTURE###", structure_path)
+                self._modify_runfile("###COLORBONDS###", colorbonds)
+                self._modify_runfile("###COLOR###", "0.2")
+                self._modify_runfile("###LONG_BONDS###", long_bonds)
+                self._modify_runfile("###SCALE###", "1.0")
+                self._modify_runfile("###UNIT_CELL###", unit_cell)
+                self._modify_runfile("###REPRESENTATION###", representation)
+                self._modify_runfile("###READ_DENSITY###", read_density)
+                self._modify_runfile("###ZERO_CELL###", "False")
+                self._modify_runfile("###OUTLINE###", outline)
+                self._modify_runfile("###ANIMATE###", animate)
+                self._modify_runfile("###RESOLUTION###", resolution)
+                self._run_test(input=testfile)
+                with open(os.path.join(self.testpath, "blender_out.json"), "r") as f:
+                        return json.load(f)
+
         def test_import_mol(self):
                 print("Testing Molecule import... ", end="")
-                pass
+                data = self._run_single_import("NHC.xyz")
+                # NHC.xyz: C9H16N2, 27 atoms, no periodic boundary conditions
+                self.assertIn("objects", data)
+                self.assertIn("materials", data)
+                self.assertGreater(len(data["objects"]), 0, "No mesh objects created")
+                # Expect at least one object per atom (27 atoms → 27+ objects incl. bonds)
+                self.assertGreaterEqual(len(data["objects"]), 27)
+                # Materials for each element (C, H, N) plus their bond variants
+                material_names = data["materials"]
+                self.assertIn("C", material_names)
+                self.assertIn("H", material_names)
+                self.assertIn("N", material_names)
                 print("OK")
 
         def test_import_mol_double(self):
