@@ -318,10 +318,30 @@ class TestAddon(unittest.TestCase):
 
         def test_import_density(self):
                 print("Testing Density import... ", end="")
-                pass
+                # nhc_pbc.poscar is a periodic NHC structure (C9H16N2, pbc=True).
+                # No .cube file is present in reference_data yet, so read_density=False
+                # here. This test exercises the pbc+no-density code path and serves as
+                # a placeholder until a reference cube file is added.
+                data = self._run_single_import("nhc_pbc.poscar", unit_cell="True",
+                                               read_density="False")
+                self.assertGreater(len(data["objects"]), 0, "No mesh objects created")
+                material_names = data["materials"]
+                self.assertIn("C", material_names)
+                self.assertIn("H", material_names)
+                self.assertIn("N", material_names)
                 print("OK")
 
         def test_materials(self):
                 print("Testing Materials import... ", end="")
-                pass
+                data = self._run_single_import("NHC.xyz")
+                material_names = data["materials"]
+                expected_elements = {"C", "H", "N"}
+                for element in expected_elements:
+                        self.assertIn(element, material_names,
+                                      f"Material for element {element} not created")
+                        self.assertIn(element + "-bond", material_names,
+                                      f"Bond material for element {element} not created")
+                # Gray fallback material should always be present
+                self.assertIn("Gray", material_names)
+                self.assertIn("Gray-bond", material_names)
                 print("OK")
